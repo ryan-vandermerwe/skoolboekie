@@ -26,8 +26,12 @@ dependencies {
     compile("org.apache.tomcat.embed:tomcat-embed-el")
     runtime("javax.servlet:jstl")
     runtime("org.apache.tomcat.embed:tomcat-embed-jasper")
-    testCompile group: 'junit', name: 'junit', version: '4.12'
     compile("org.projectlombok:lombok:1.16.10")
+    compile ('org.javassist:javassist:3.15.0-GA')
+    compile("org.postgresql:postgresql:9.4-1201-jdbc4")
+    compile("com.zaxxer:HikariCP:2.5.1")
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
 sourceCompatibility = 1.8
