@@ -23,6 +23,8 @@ repositories {
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.hibernate:hibernate-core:5.2.12.Final")
+    compile("org.hibernate:hibernate-envers:5.2.12.Final")
+    compile ("org.flywaydb:flyway-core:5.0.7")
     compile("org.apache.tomcat.embed:tomcat-embed-el")
     runtime("javax.servlet:jstl")
     runtime("org.apache.tomcat.embed:tomcat-embed-jasper")

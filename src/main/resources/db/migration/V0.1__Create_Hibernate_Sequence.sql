@@ -1,0 +1,1 @@
+create sequence skoolboekie.public.hibernate_sequence;
