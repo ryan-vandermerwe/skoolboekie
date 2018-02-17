@@ -32,8 +32,19 @@ public class Lookup extends BaseEntity {
     private String value;
 
     @Lob
+    @Column(name = "metadata")
     private String metaData;
 
     @ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.LAZY, optional = true)
     private Lookup parent;
+
+    public Lookup(){}
+
+    public Lookup(String clientID, LookupTypes lookupType, String value, String metaData, Lookup parent) {
+        this.clientID = clientID;
+        this.lookupType = lookupType;
+        this.value = value;
+        this.metaData = metaData;
+        this.parent = parent;
+    }
 }
