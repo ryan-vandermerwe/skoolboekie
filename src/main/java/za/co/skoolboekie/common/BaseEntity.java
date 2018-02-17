@@ -2,8 +2,6 @@ package za.co.skoolboekie.common;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
@@ -21,9 +19,7 @@ import java.util.UUID;
 public abstract class BaseEntity {
 
     @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Type(type = "uuid-binary")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @Temporal(TemporalType.TIMESTAMP)

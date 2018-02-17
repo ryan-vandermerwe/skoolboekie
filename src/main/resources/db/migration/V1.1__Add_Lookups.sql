@@ -1,17 +1,17 @@
 CREATE TABLE public.lookups
 (
-  id bytea NOT NULL,
+  id uuid NOT NULL,
   datemodified timestamp with time zone,
   clientid character varying(255),
   lookuptype character varying(255) NOT NULL,
   metadata text,
   value character varying(255) NOT NULL,
-  parent_id bytea,
+  parent_id uuid,
   CONSTRAINT lookups_pkey PRIMARY KEY (id),
-  CONSTRAINT fkawfm2efpyyjhs6ev2rrlt9r8e FOREIGN KEY (parent_id)
+  CONSTRAINT lookups_parent_fk FOREIGN KEY (parent_id)
   REFERENCES public.lookups (id) MATCH SIMPLE
   ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT uk_prhmjd5jdqtlwlwy5cvcxy7w9 UNIQUE (clientid)
+  CONSTRAINT uk_clientID UNIQUE (clientid)
 );
 
 ALTER TABLE public.lookups
@@ -19,19 +19,19 @@ ALTER TABLE public.lookups
 
 CREATE TABLE public.lookups_aud
 (
-  id bytea NOT NULL,
+  id uuid NOT NULL,
   rev integer NOT NULL,
   revtype smallint,
   clientid character varying(255),
   lookuptype character varying(255),
   metadata text,
   value character varying(255),
-  parent_id bytea,
+  parent_id uuid,
   CONSTRAINT lookups_aud_pkey PRIMARY KEY (id, rev),
-  CONSTRAINT fklpkt4ir5q32cwgtj8nsg1j3dx FOREIGN KEY (rev)
+  CONSTRAINT lookups_revinfo_fk FOREIGN KEY (rev)
   REFERENCES public.revinfo (rev) MATCH SIMPLE
   ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT fkmdox9xtdphb80f70krsfuqqsr FOREIGN KEY (rev)
+  CONSTRAINT lookups_rev_entity_fk FOREIGN KEY (rev)
   REFERENCES public.userrevisionentity (id) MATCH SIMPLE
   ON UPDATE NO ACTION ON DELETE NO ACTION
 );
