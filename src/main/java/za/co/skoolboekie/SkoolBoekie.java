@@ -5,7 +5,6 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import java.util.Arrays;
 
@@ -15,7 +14,6 @@ import java.util.Arrays;
  */
 
 @SpringBootApplication(scanBasePackages = "za.co.skoolboekie")
-@EnableJpaRepositories("za.co.skoolboekie.dao")
 @Slf4j
 public class SkoolBoekie implements ApplicationRunner {
 
