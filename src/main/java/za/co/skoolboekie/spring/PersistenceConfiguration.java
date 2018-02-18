@@ -10,14 +10,13 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,7 +42,7 @@ public class PersistenceConfiguration {
     public Flyway flyway() {
         Flyway flyway = new Flyway();
         flyway.setBaselineOnMigrate(true);
-       // flyway.setLocations("classpath:" + classPath);
+        // flyway.setLocations("classpath:" + classPath);
         flyway.setDataSource(dataSource());
         return flyway;
     }
@@ -77,19 +76,19 @@ public class PersistenceConfiguration {
 
     @Bean(name = "entityManagerFactory")
     @DependsOn("flyway")
-    public EntityManagerFactory entityManagerFactory() {
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
         LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
         emf.setDataSource(dataSource());
         HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
         jpaVendorAdapter.setShowSql(true);
-       // jpaVendorAdapter.setGenerateDdl(true);
+        //jpaVendorAdapter.setGenerateDdl(true);
         jpaVendorAdapter.setDatabasePlatform("org.hibernate.dialect.PostgreSQLDialect");
 
         emf.setJpaVendorAdapter(jpaVendorAdapter);
         emf.setPackagesToScan("za.co.skoolboekie.model");
         emf.setPersistenceUnitName("default");
         emf.afterPropertiesSet();
-        return emf.getObject();
+        return emf;
     }
 
 
@@ -117,7 +116,7 @@ public class PersistenceConfiguration {
                 setProperty("hibernate.jdbc.batch_size", "50");
                 setProperty("hibernate.jdbc.batch_versioned_data", "true");
 
-                final String createSchema = "validate"; // This should change!!
+                final String createSchema = "update"; // This should change!!
 
                 setProperty("hibernate.hbm2ddl.auto", createSchema);
                 setProperty("hibernate.generate_statistics", "false");
@@ -132,8 +131,10 @@ public class PersistenceConfiguration {
     }
 
     @Bean
-    public HibernateTransactionManager transactionManager() {
-        return new HibernateTransactionManager(sessionFactory().getObject());
+    public JpaTransactionManager transactionManager() {
+        JpaTransactionManager jpaTransactionManager = new JpaTransactionManager();
+        jpaTransactionManager.setEntityManagerFactory(entityManagerFactory().getObject());
+        return jpaTransactionManager;
     }
 
     @Bean
@@ -157,19 +158,19 @@ public class PersistenceConfiguration {
             try {
                 classPath = file.getCanonicalPath();
                 log.debug("Canonical root path: " + classPath);
-               // return c;
+                // return c;
             } catch (IOException e) {
                 log.warn("Exception getting canonicalPath for Skoolboekie root (\"\")", e);
                 //return "";
             }
         } catch (FileNotFoundException e) {
             log.warn("Exception getting Skoolboekie root (\"\")", e);
-          //  return "";
+            //  return "";
         }
 
         //TODO:: In the future we are gonna have to do this for the tests and actual window service
         // Find the path -> For now we running from the IDE
-        if(StringUtils.isEmpty(classPath)){
+        if (StringUtils.isEmpty(classPath)) {
             throw new RuntimeException("Cannot find the class path!");
         }
 

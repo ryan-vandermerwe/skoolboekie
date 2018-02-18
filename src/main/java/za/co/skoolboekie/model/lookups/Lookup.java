@@ -6,6 +6,7 @@ import org.hibernate.envers.Audited;
 import za.co.skoolboekie.common.BaseEntity;
 
 import javax.persistence.*;
+import java.util.UUID;
 
 /**
  * Created by ryan on 2/12/2018.
@@ -31,8 +32,8 @@ public class Lookup extends BaseEntity {
     @Column(nullable = false)
     private String value;
 
-    @Lob
-    @Column(name = "metadata")
+
+    @Column(name = "metadata", columnDefinition = "TEXT")
     private String metaData;
 
     @ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.LAZY, optional = true)
@@ -40,7 +41,8 @@ public class Lookup extends BaseEntity {
 
     public Lookup(){}
 
-    public Lookup(String clientID, LookupTypes lookupType, String value, String metaData, Lookup parent) {
+    public Lookup(UUID id, String clientID, LookupTypes lookupType, String value, String metaData, Lookup parent) {
+        super.setId(id);
         this.clientID = clientID;
         this.lookupType = lookupType;
         this.value = value;

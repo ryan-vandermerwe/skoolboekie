@@ -11,8 +11,14 @@ CREATE TABLE public.lookups
   CONSTRAINT lookups_parent_fk FOREIGN KEY (parent_id)
   REFERENCES public.lookups (id) MATCH SIMPLE
   ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT uk_clientID UNIQUE (clientid)
+  CONSTRAINT uk_clientid UNIQUE (clientid)
+)
+WITH (
+OIDS=FALSE
+
 );
+ALTER TABLE public.lookups
+  OWNER TO postgres;
 
 ALTER TABLE public.lookups
   OWNER TO postgres;
@@ -28,14 +34,16 @@ CREATE TABLE public.lookups_aud
   value character varying(255),
   parent_id uuid,
   CONSTRAINT lookups_aud_pkey PRIMARY KEY (id, rev),
-  CONSTRAINT lookups_revinfo_fk FOREIGN KEY (rev)
-  REFERENCES public.revinfo (rev) MATCH SIMPLE
+  CONSTRAINT fkmdox9xtdphb80f70krsfuqqsr FOREIGN KEY (rev)
+  REFERENCES public.userrevisionentity (id) MATCH SIMPLE
   ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT lookups_rev_entity_fk FOREIGN KEY (rev)
   REFERENCES public.userrevisionentity (id) MATCH SIMPLE
   ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+WITH (
+OIDS=FALSE
 );
-
 ALTER TABLE public.lookups_aud
   OWNER TO postgres;
 

@@ -4,6 +4,7 @@ import ma.glasnost.orika.BoundMapperFacade;
 import ma.glasnost.orika.MapperFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import za.co.skoolboekie.dao.LookupRepository;
 import za.co.skoolboekie.dto.lookup.LookupDTO;
@@ -25,12 +26,11 @@ public class LookupServiceImpl implements ILookupService {
     private MapperFactory mapperFactory;
 
     @Override
+    @Transactional
     public void saveLookup(LookupDTO lookupDTO) {
         //TODO:: Validate fields here
 
-        UUID id = UUID.randomUUID();
         Lookup lookup = new Lookup();
-        lookup.setId(id);
         lookup.setClientID(lookupDTO.getClientID());
         lookup.setLookupType(Lookup.LookupTypes.values()[new Integer(lookupDTO.getLookupType())]);
         lookup.setMetaData(lookupDTO.getMetaData());
@@ -49,6 +49,7 @@ public class LookupServiceImpl implements ILookupService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<LookupDTO> getAllLookups() {
         List<Lookup> lookups = lookupRepository.findAll();
         BoundMapperFacade<Lookup, LookupDTO> lookupsFacade = mapperFactory.getMapperFacade(Lookup.class, LookupDTO.class);
