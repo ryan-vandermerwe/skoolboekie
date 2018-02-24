@@ -19,3 +19,7 @@ jdbc:
   statementsCacheSize: 100
   driverClass: org.postgresql.Driver
 
+server:
+  port: 8080
+
+
