@@ -15,7 +15,7 @@ import za.co.skoolboekie.model.lookups.LookupServiceImpl;
 public class TestBeanConfiguration {
 
     @Bean
-    public ILookupService lookupService(){
+    public ILookupService lookupService() {
         return new LookupServiceImpl();
     }
 

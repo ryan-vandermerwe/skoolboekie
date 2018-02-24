@@ -33,7 +33,7 @@ public class LookupController {
 
     @RequestMapping(value = "/lookup", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(readOnly = true)
-    public ResponseEntity<List<LookupDTO>> getAllLookups(){
+    public ResponseEntity<List<LookupDTO>> getAllLookups() {
         List<LookupDTO> lookupDTOS = lookupService.getAllLookups();
         return new ResponseEntity<>(lookupDTOS, new HttpHeaders(), HttpStatus.OK);
     }

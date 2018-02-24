@@ -10,5 +10,5 @@ import java.util.UUID;
  * Created by ryan on 2/13/2018.
  */
 @Repository
-public interface LookupRepository extends JpaRepository<Lookup, UUID>{
+public interface LookupRepository extends JpaRepository<Lookup, UUID> {
 }

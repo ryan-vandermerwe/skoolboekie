@@ -3,8 +3,6 @@ package za.co.skoolboekie.dao;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import za.co.skoolboekie.model.lookups.Lookup;
 import za.co.skoolboekie.setup.RepoTestSetup;
@@ -12,14 +10,10 @@ import za.co.skoolboekie.setup.RepoTestSetup;
 import java.util.List;
 import java.util.UUID;
 
-import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE;
-
 /**
  * Created by ryan on 2/15/2018.
  */
 
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = NONE)
 public class LookupRepositoryTest extends RepoTestSetup {
     @Autowired
     private TestEntityManager testEntityManager;

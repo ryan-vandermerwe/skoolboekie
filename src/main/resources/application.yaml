@@ -1,0 +1,21 @@
+hibernate:
+  default_schema: public
+  show_sql: false
+  globally_quoted_identifiers: false
+  dialect: org.hibernate.dialect.PostgresPlusDialect
+  jdbc:
+    batch_size: 50
+    batch_versioned_data: true
+  createSchema: validate
+
+jdbc:
+  url: jdbc:postgresql://localhost:5432/skoolboekie
+  username: postgres
+  password: ryanjason
+  idleMaxAge: 0
+  MinConnectionsPerPartition: 1
+  MaxConnectionsPerPartition: 4
+  PartitionCount: 1
+  statementsCacheSize: 100
+  driverClass: org.postgresql.Driver
+

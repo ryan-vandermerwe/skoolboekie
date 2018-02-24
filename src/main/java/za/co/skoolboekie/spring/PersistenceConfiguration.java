@@ -3,11 +3,13 @@ package za.co.skoolboekie.spring;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
@@ -38,6 +40,9 @@ public class PersistenceConfiguration {
     private static final long DEFAULT_IDLE_MAX_AGE = 240;
     private static final long DEFAULT_STATEMENTS_CACHE_SIZE = 100;
 
+    @Autowired
+    private Environment env;
+
     @Bean(initMethod = "migrate")
     public Flyway flyway() {
         Flyway flyway = new Flyway();
@@ -52,22 +57,22 @@ public class PersistenceConfiguration {
     public DataSource dataSource() {
 
         final HikariDataSource hikariDataSource = new HikariDataSource();
-        hikariDataSource.setJdbcUrl("jdbc:postgresql://localhost:5432/skoolboekie");
-        hikariDataSource.setUsername("postgres");
-        hikariDataSource.setPassword("ryanjason");
-        hikariDataSource.setIdleTimeout(get(toMilliseconds(0L),
+        hikariDataSource.setJdbcUrl(env.getProperty("jdbc.url"));
+        hikariDataSource.setUsername(env.getProperty("jdbc.username"));
+        hikariDataSource.setPassword(env.getProperty("jdbc.password"));
+        hikariDataSource.setIdleTimeout(get(toMilliseconds(Long.valueOf(env.getProperty("jdbc.idleMaxAge"))),
                 toMilliseconds(DEFAULT_IDLE_MAX_AGE)));
 
-        final int minConnectionsPerPartition = get(1L, DEFAULT_MIN_CONS_PER_PARTITION).intValue();
-        final int maxConnectionsPerPartition = get(4L, DEFAULT_MAX_CONS_PER_PARTITION).intValue();
-        final int partitionCount = get(1L, DEFAULT_PARTITION_COUNT).intValue();
+        final int minConnectionsPerPartition = get(Long.valueOf(env.getProperty("jdbc.MinConnectionsPerPartition")), DEFAULT_MIN_CONS_PER_PARTITION).intValue();
+        final int maxConnectionsPerPartition = get(Long.valueOf(env.getProperty("jdbc.MaxConnectionsPerPartition")), DEFAULT_MAX_CONS_PER_PARTITION).intValue();
+        final int partitionCount = get(Long.valueOf(env.getProperty("jdbc.PartitionCount")), DEFAULT_PARTITION_COUNT).intValue();
 
         hikariDataSource.setMinimumIdle(minConnectionsPerPartition * partitionCount);
         hikariDataSource.setMinimumIdle(minConnectionsPerPartition * partitionCount);
         hikariDataSource.setMaximumPoolSize(maxConnectionsPerPartition * partitionCount);
 
         hikariDataSource.addDataSourceProperty("cachePrepStmts", true);
-        hikariDataSource.addDataSourceProperty("prepStmtCacheSize", get((Long) 100L, DEFAULT_STATEMENTS_CACHE_SIZE).intValue());
+        hikariDataSource.addDataSourceProperty("prepStmtCacheSize", get(Long.valueOf(env.getProperty("jdbc.statementsCacheSize")), DEFAULT_STATEMENTS_CACHE_SIZE).intValue());
         hikariDataSource.setAllowPoolSuspension(false);
 
         return hikariDataSource;
@@ -82,7 +87,7 @@ public class PersistenceConfiguration {
         HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
         jpaVendorAdapter.setShowSql(true);
         //jpaVendorAdapter.setGenerateDdl(true);
-        jpaVendorAdapter.setDatabasePlatform("org.hibernate.dialect.PostgreSQLDialect");
+        jpaVendorAdapter.setDatabasePlatform(env.getProperty("hibernate.dialect"));
 
         emf.setJpaVendorAdapter(jpaVendorAdapter);
         emf.setPackagesToScan("za.co.skoolboekie.model");
@@ -109,16 +114,16 @@ public class PersistenceConfiguration {
     public Properties hibernateProperties() {
         return new Properties() {
             {
-                setProperty("hibernate.default_schema", "public");
-                setProperty("hibernate.dialect", "org.hibernate.dialect.PostgresPlusDialect");
-                setProperty("hibernate.show_sql", "false");
-                setProperty("hibernate.globally_quoted_identifiers", "false");
-                setProperty("hibernate.jdbc.batch_size", "50");
-                setProperty("hibernate.jdbc.batch_versioned_data", "true");
+                setProperty("hibernate.default_schema", env.getProperty("hibernate.default_schema"));
+                setProperty("hibernate.dialect", env.getProperty("hibernate.dialect"));
+                setProperty("hibernate.show_sql",env.getProperty("hibernate.show_sql"));
+                setProperty("hibernate.globally_quoted_identifiers", env.getProperty("hibernate.globally_quoted_identifiers"));
+                setProperty("hibernate.jdbc.batch_size", env.getProperty("hibernate.jdbc.batch_size"));
+                setProperty("hibernate.jdbc.batch_versioned_data", env.getProperty("hibernate.jdbc.batch_versioned_data"));
 
                 final String createSchema = "update"; // This should change!!
 
-                setProperty("hibernate.hbm2ddl.auto", createSchema);
+                setProperty("hibernate.hbm2ddl.auto", env.getProperty("hibernate.createSchema"));
                 setProperty("hibernate.generate_statistics", "false");
                 setProperty("hibernate.ejb.event.post-insert", "org.hibernate.ejb.event.EJB3PostInsertEventListener,org.hibernate.envers.event.AuditEventListener");
                 setProperty("hibernate.ejb.event.post-update", "org.hibernate.ejb.event.EJB3PostUpdateEventListener,org.hibernate.envers.event.AuditEventListener");

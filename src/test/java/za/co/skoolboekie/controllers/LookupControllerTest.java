@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 
 @WebMvcTest(LookupController.class)
-public class LookupControllerTest extends ControllerTestSetup{
+public class LookupControllerTest extends ControllerTestSetup {
     @Autowired
     MockMvc mockMvc;
 
