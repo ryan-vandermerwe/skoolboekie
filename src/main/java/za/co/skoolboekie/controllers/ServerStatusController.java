@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import za.co.skoolboekie.dto.MigrationDTO;
 import za.co.skoolboekie.dto.ServerStatusDTO;
 
 import java.time.Instant;
@@ -24,7 +25,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by ryan on 2/4/2018.
@@ -52,21 +55,17 @@ public class ServerStatusController {
         serverStatusDTO.setNow(nowAsString);
         serverStatusDTO.setMessage("The service is alive!!");
 
-        MigrationInfoService migrationInfoService = flyway.info();
-        MigrationInfo[] migrations = migrationInfoService.all();
+        MigrationInfo[] migrations = getAllMigrations();
 
         if (migrations.length > 0) {
             MigrationInfo migrationInfo = Arrays.stream(migrations).reduce((a, b) -> b).orElse(null);
             if (migrationInfo != null) {
-
                 String version = migrationInfo.getVersion().getVersion();
                 ZoneId defaultZoneId = ZoneId.systemDefault();
                 Instant instant = migrationInfo.getInstalledOn().toInstant();
                 String dateOfLastMigration = instant.atZone(defaultZoneId).toLocalDateTime().format(formatter);
                 String migrationMessage = migrationInfo.getDescription();
-
-                ServerStatusDTO.DBVersion dbVersion = serverStatusDTO.new DBVersion(version, dateOfLastMigration, migrationMessage);
-                serverStatusDTO.setDbVersion(dbVersion);
+                serverStatusDTO.setDbVersion(new MigrationDTO(version, dateOfLastMigration, migrationMessage));
             }
 
         } else {
@@ -82,6 +81,29 @@ public class ServerStatusController {
         Map<String, Metric> metrics = metricRegistry.getMetrics();
         HealthMetrics healthMetrics = new HealthMetrics(healthChecks, metrics);
         return new ResponseEntity<>(healthMetrics, new HttpHeaders(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/migrations", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<MigrationDTO>> migrations() {
+        MigrationInfo[] migrations = getAllMigrations();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        List<MigrationDTO> migrationDTOS = Arrays.stream(migrations).map(migrationInfo -> {
+            String version = migrationInfo.getVersion().getVersion();
+            ZoneId defaultZoneId = ZoneId.systemDefault();
+            Instant instant = migrationInfo.getInstalledOn().toInstant();
+            String dateOfLastMigration = instant.atZone(defaultZoneId).toLocalDateTime().format(formatter);
+            String migrationMessage = migrationInfo.getDescription();
+
+            return new MigrationDTO(version, dateOfLastMigration, migrationMessage);
+
+        }).collect(Collectors.toList());
+
+        return new ResponseEntity<>(migrationDTOS, new HttpHeaders(), HttpStatus.OK);
+    }
+
+    private MigrationInfo[] getAllMigrations() {
+        MigrationInfoService migrationInfoService = flyway.info();
+        return migrationInfoService.all();
     }
 
     @Getter
