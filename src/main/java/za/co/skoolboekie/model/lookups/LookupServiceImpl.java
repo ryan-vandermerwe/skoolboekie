@@ -10,6 +10,7 @@ import za.co.skoolboekie.dao.LookupRepository;
 import za.co.skoolboekie.dto.lookup.LookupDTO;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -26,19 +27,24 @@ public class LookupServiceImpl implements ILookupService {
     private MapperFactory mapperFactory;
 
     @Override
-    @Transactional
     public void saveLookup(LookupDTO lookupDTO) {
         //TODO:: Validate fields here
 
         Lookup lookup = new Lookup();
+        if (Objects.nonNull(lookupDTO.getId())) {
+            lookup.setId(UUID.fromString(lookupDTO.getId()));
+        }
+
         lookup.setClientID(lookupDTO.getClientID());
-        lookup.setLookupType(Lookup.LookupTypes.values()[new Integer(lookupDTO.getLookupType())]);
+        lookup.setLookupType(Lookup.LookupTypes.getLookupValue(lookupDTO.getLookupType()));
+        //lookup.setLookupType(Lookup.LookupTypes.values()[new Integer(lookupDTO.getLookupType())]);
+
         lookup.setMetaData(lookupDTO.getMetaData());
         lookup.setValue(lookupDTO.getValue());
 
-        if (!StringUtils.isEmpty(lookupDTO.getParentID())) {
+        if (!StringUtils.isEmpty(lookupDTO.getParent())) {
             // Test for malformed UUID here
-            Lookup parent = lookupRepository.getOne(UUID.fromString(lookupDTO.getParentID()));
+            Lookup parent = lookupRepository.getOne(UUID.fromString(lookupDTO.getParent()));
 
             if (parent != null)
                 lookup.setParent(parent);

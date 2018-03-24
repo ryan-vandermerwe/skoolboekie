@@ -19,7 +19,18 @@ import java.util.UUID;
 @Setter
 public class Lookup extends BaseEntity {
     public enum LookupTypes {
-        DEPARTMENT
+        DEPARTMENT;
+
+        public static LookupTypes getLookupValue(String value){
+            for(LookupTypes lookupType: LookupTypes.values()){
+                if(lookupType.name().equalsIgnoreCase(value)){
+                    return lookupType;
+                }
+            }
+
+            throw new RuntimeException("Cannot find lookup type " + value);
+        }
+
     }
 
     @Column(nullable = true, unique = true, name = "clientid")
@@ -31,7 +42,6 @@ public class Lookup extends BaseEntity {
 
     @Column(nullable = false)
     private String value;
-
 
     @Column(name = "metadata", columnDefinition = "TEXT")
     private String metaData;

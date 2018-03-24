@@ -12,4 +12,5 @@ public class ServerStatusDTO {
     public String message;
     public String now;
     public String databaseVersion;
+
 }

@@ -26,7 +26,7 @@ public class EntityMapperConfig {
               .field("clientID", "clientID")
               .field("value", "value")
               .field("metaData", "metaData")
-              .field("parent.id", "parentID")
+              .field("parent.id", "parent")
               .register();
    }
 

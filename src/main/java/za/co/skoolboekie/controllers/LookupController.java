@@ -1,5 +1,7 @@
 package za.co.skoolboekie.controllers;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import za.co.skoolboekie.dto.lookup.LookupDTO;
 import za.co.skoolboekie.model.lookups.ILookupService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,8 +36,18 @@ public class LookupController {
 
     @RequestMapping(value = "/lookup", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(readOnly = true)
-    public ResponseEntity<List<LookupDTO>> getAllLookups() {
+    public ResponseEntity<Response> getAllLookups() {
         List<LookupDTO> lookupDTOS = lookupService.getAllLookups();
-        return new ResponseEntity<>(lookupDTOS, new HttpHeaders(), HttpStatus.OK);
+        Response response = new Response(lookupDTOS);
+        return new ResponseEntity<>(response, new HttpHeaders(), HttpStatus.OK);
+    }
+
+    @Getter
+    @Setter
+    private class Response{
+        private List<LookupDTO> lookups = new ArrayList<>();
+        private Response(List<LookupDTO> items){
+            this.lookups = items;
+        }
     }
 }

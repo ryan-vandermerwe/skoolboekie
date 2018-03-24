@@ -1,14 +1,13 @@
 package za.co.skoolboekie.spring;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheckRegistry;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -32,6 +31,7 @@ import java.util.Properties;
 @Slf4j
 @Configuration
 @EnableJpaRepositories("za.co.skoolboekie.dao")
+@Import(value = ServiceConfiguration.class)
 public class PersistenceConfiguration {
 
     private static final long DEFAULT_MIN_CONS_PER_PARTITION = 1;
@@ -42,6 +42,12 @@ public class PersistenceConfiguration {
 
     @Autowired
     private Environment env;
+
+    @Autowired
+    private HealthCheckRegistry healthCheckRegistry;
+
+    @Autowired
+    private MetricRegistry metricRegistry;
 
     @Bean(initMethod = "migrate")
     public Flyway flyway() {
@@ -54,6 +60,7 @@ public class PersistenceConfiguration {
 
     @Bean
     @ConfigurationProperties("spring.datasource")
+    @DependsOn("healthCheckRegistry")
     public DataSource dataSource() {
 
         final HikariDataSource hikariDataSource = new HikariDataSource();
@@ -75,8 +82,13 @@ public class PersistenceConfiguration {
         hikariDataSource.addDataSourceProperty("prepStmtCacheSize", get(Long.valueOf(env.getProperty("jdbc.statementsCacheSize")), DEFAULT_STATEMENTS_CACHE_SIZE).intValue());
         hikariDataSource.setAllowPoolSuspension(false);
 
-        return hikariDataSource;
+        hikariDataSource.setHealthCheckRegistry(healthCheckRegistry);
+        hikariDataSource.addHealthCheckProperty("connectivityCheckTimeoutMs", "1000");
+        hikariDataSource.addHealthCheckProperty("expected99thPercentileMs", "10");
 
+        hikariDataSource.setMetricRegistry(metricRegistry);
+
+        return hikariDataSource;
     }
 
     @Bean(name = "entityManagerFactory")

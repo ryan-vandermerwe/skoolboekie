@@ -1,5 +1,15 @@
 package za.co.skoolboekie.controllers;
 
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheck;
+import com.codahale.metrics.health.HealthCheckRegistry;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.MigrationInfo;
+import org.flywaydb.core.api.MigrationInfoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -11,15 +21,27 @@ import za.co.skoolboekie.dto.ServerStatusDTO;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Created by ryan on 2/4/2018.
  */
+
+@Slf4j
 @RestController
 public class ServerStatusController {
+    @Autowired
+    private HealthCheckRegistry healthCheckRegistry;
+
+    @Autowired
+    private MetricRegistry metricRegistry;
+
+    @Autowired
+    private Flyway flyway;
 
     @RequestMapping(value = "/ping", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ServerStatusDTO> test() {
+    public ResponseEntity<ServerStatusDTO> ping() {
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String nowAsString = now.format(formatter);
@@ -27,8 +49,45 @@ public class ServerStatusController {
         ServerStatusDTO serverStatusDTO = new ServerStatusDTO();
         serverStatusDTO.setNow(nowAsString);
         serverStatusDTO.setMessage("The service is alive!!");
-        serverStatusDTO.setDatabaseVersion("Yet to be implemented. Will track our database migrations");
 
+        MigrationInfoService migrationInfoService = flyway.info();
+        MigrationInfo[] migrations = migrationInfoService.all();
+
+        String databaseVersionString = "No migration has been run yet";
+        if (migrations.length > 0) {
+            MigrationInfo migrationInfo = Arrays.stream(migrations).reduce((a, b) -> b).orElse(null);
+            if (migrationInfo != null) {
+                String version = migrationInfo.getVersion().getVersion();
+                String dateOfLastMigration = migrationInfo.getInstalledOn().toString();
+                databaseVersionString = "Version = " + version + ". Executed on " + dateOfLastMigration;
+            }
+
+        } else {
+            log.debug(databaseVersionString);
+        }
+
+        serverStatusDTO.setDatabaseVersion(databaseVersionString);
         return new ResponseEntity<>(serverStatusDTO, new HttpHeaders(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/health", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<HealthMetrics> health() {
+        Map<String, HealthCheck.Result> healthChecks = healthCheckRegistry.runHealthChecks();
+        Map<String, Metric> metrics = metricRegistry.getMetrics();
+
+        HealthMetrics healthMetrics = new HealthMetrics(healthChecks, metrics);
+
+        return new ResponseEntity<>(healthMetrics, new HttpHeaders(), HttpStatus.OK);
+    }
+
+    @Getter
+    private class HealthMetrics {
+        Map<String, HealthCheck.Result> healthChecks;
+        Map<String, Metric> metrics;
+
+        HealthMetrics(Map<String, HealthCheck.Result> healthChecks, Map<String, Metric> metrics) {
+            this.healthChecks = healthChecks;
+            this.metrics = metrics;
+        }
     }
 }

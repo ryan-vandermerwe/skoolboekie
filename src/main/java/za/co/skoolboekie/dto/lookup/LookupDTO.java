@@ -14,7 +14,7 @@ public class LookupDTO {
     private String lookupType;
     private String value;
     private String metaData;
-    private String parentID;
+    private String parent;
 
     public LookupDTO(){}
 
@@ -24,6 +24,6 @@ public class LookupDTO {
         this.lookupType = lookupType;
         this.value = value;
         this.metaData = metaData;
-        this.parentID = parentID;
+        this.parent = parentID;
     }
 }

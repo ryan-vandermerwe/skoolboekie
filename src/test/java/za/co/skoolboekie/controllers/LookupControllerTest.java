@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -28,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(LookupController.class)
 public class LookupControllerTest extends ControllerTestSetup {
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
 
     @MockBean
     private ILookupService lookupService;
@@ -40,7 +39,7 @@ public class LookupControllerTest extends ControllerTestSetup {
         String metaData = UUID.randomUUID().toString();
         String parentID = UUID.randomUUID().toString();
         String value = UUID.randomUUID().toString();
-        String lookupType = "1";
+        String lookupType = "DEPARTMENT";
 
         LookupDTO lookupDTO = new LookupDTO(id, clientID, lookupType, value, metaData, parentID);
         List<LookupDTO> lookupDTOS = Collections.singletonList(lookupDTO);
@@ -50,6 +49,6 @@ public class LookupControllerTest extends ControllerTestSetup {
 
         mockMvc.perform(get("/lookup").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1))).andExpect(jsonPath("$[0].id", is(id)));
+                .andExpect(jsonPath("$.lookups[0].id", is(id)));
     }
 }
