@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import za.co.skoolboekie.dto.ServerStatusDTO;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Map;
@@ -53,20 +55,24 @@ public class ServerStatusController {
         MigrationInfoService migrationInfoService = flyway.info();
         MigrationInfo[] migrations = migrationInfoService.all();
 
-        String databaseVersionString = "No migration has been run yet";
         if (migrations.length > 0) {
             MigrationInfo migrationInfo = Arrays.stream(migrations).reduce((a, b) -> b).orElse(null);
             if (migrationInfo != null) {
+
                 String version = migrationInfo.getVersion().getVersion();
-                String dateOfLastMigration = migrationInfo.getInstalledOn().toString();
-                databaseVersionString = "Version = " + version + ". Executed on " + dateOfLastMigration;
+                ZoneId defaultZoneId = ZoneId.systemDefault();
+                Instant instant = migrationInfo.getInstalledOn().toInstant();
+                String dateOfLastMigration = instant.atZone(defaultZoneId).toLocalDateTime().format(formatter);
+                String migrationMessage = migrationInfo.getDescription();
+
+                ServerStatusDTO.DBVersion dbVersion = serverStatusDTO.new DBVersion(version, dateOfLastMigration, migrationMessage);
+                serverStatusDTO.setDbVersion(dbVersion);
             }
 
         } else {
-            log.debug(databaseVersionString);
+            log.debug("NO DB version info. This might be a bug");
         }
 
-        serverStatusDTO.setDatabaseVersion(databaseVersionString);
         return new ResponseEntity<>(serverStatusDTO, new HttpHeaders(), HttpStatus.OK);
     }
 
@@ -74,9 +80,7 @@ public class ServerStatusController {
     public ResponseEntity<HealthMetrics> health() {
         Map<String, HealthCheck.Result> healthChecks = healthCheckRegistry.runHealthChecks();
         Map<String, Metric> metrics = metricRegistry.getMetrics();
-
         HealthMetrics healthMetrics = new HealthMetrics(healthChecks, metrics);
-
         return new ResponseEntity<>(healthMetrics, new HttpHeaders(), HttpStatus.OK);
     }
 
