@@ -60,12 +60,7 @@ public class ServerStatusController {
         if (migrations.length > 0) {
             MigrationInfo migrationInfo = Arrays.stream(migrations).reduce((a, b) -> b).orElse(null);
             if (migrationInfo != null) {
-                String version = migrationInfo.getVersion().getVersion();
-                ZoneId defaultZoneId = ZoneId.systemDefault();
-                Instant instant = migrationInfo.getInstalledOn().toInstant();
-                String dateOfLastMigration = instant.atZone(defaultZoneId).toLocalDateTime().format(formatter);
-                String migrationMessage = migrationInfo.getDescription();
-                serverStatusDTO.setDbVersion(new MigrationDTO(version, dateOfLastMigration, migrationMessage));
+                serverStatusDTO.setDbVersion(getMigrationDTO(migrationInfo, formatter));
             }
 
         } else {
@@ -87,23 +82,23 @@ public class ServerStatusController {
     public ResponseEntity<List<MigrationDTO>> migrations() {
         MigrationInfo[] migrations = getAllMigrations();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        List<MigrationDTO> migrationDTOS = Arrays.stream(migrations).map(migrationInfo -> {
-            String version = migrationInfo.getVersion().getVersion();
-            ZoneId defaultZoneId = ZoneId.systemDefault();
-            Instant instant = migrationInfo.getInstalledOn().toInstant();
-            String dateOfLastMigration = instant.atZone(defaultZoneId).toLocalDateTime().format(formatter);
-            String migrationMessage = migrationInfo.getDescription();
-
-            return new MigrationDTO(version, dateOfLastMigration, migrationMessage);
-
-        }).collect(Collectors.toList());
-
+        List<MigrationDTO> migrationDTOS = Arrays.stream(migrations).map(migrationInfo -> getMigrationDTO(migrationInfo, formatter)).collect(Collectors.toList());
         return new ResponseEntity<>(migrationDTOS, new HttpHeaders(), HttpStatus.OK);
     }
 
     private MigrationInfo[] getAllMigrations() {
         MigrationInfoService migrationInfoService = flyway.info();
         return migrationInfoService.all();
+    }
+
+    private MigrationDTO getMigrationDTO(MigrationInfo migrationInfo, DateTimeFormatter dateTimeFormatter) {
+        String version = migrationInfo.getVersion().getVersion();
+        ZoneId defaultZoneId = ZoneId.systemDefault();
+        Instant instant = migrationInfo.getInstalledOn().toInstant();
+        String dateOfLastMigration = instant.atZone(defaultZoneId).toLocalDateTime().format(dateTimeFormatter);
+        String migrationMessage = migrationInfo.getDescription();
+
+        return new MigrationDTO(version, dateOfLastMigration, migrationMessage);
     }
 
     @Getter
